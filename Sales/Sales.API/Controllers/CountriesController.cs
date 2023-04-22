@@ -20,7 +20,18 @@ namespace Sales.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAsync()
         {
-            return Ok(await _context.Countries.ToListAsync());
+            return Ok(await _context.Countries
+                .Include(c => c.States)
+                .ToListAsync());
+        }
+
+        [HttpGet("[action]")]
+        public async Task<ActionResult> GetFull()
+        {
+            return Ok(await _context.Countries
+                .Include(c => c.States!)
+                .ThenInclude(s => s.Cities)
+                .ToListAsync());
         }
 
         [HttpGet("{id}")]
