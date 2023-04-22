@@ -1,4 +1,8 @@
-﻿<EditForm Model="Country" OnValidSubmit="OnValidSubmit">
+﻿@inject SweetAlertService sweetAlertService
+
+<NavigationLock OnBeforeInternalNavigation="OnBeforeInternalNavigation"></NavigationLock>
+
+<EditForm EditContext="editContext" OnValidSubmit="OnValidSubmit">
     <DataAnnotationsValidator />
     <div class="mb-3">
         <label>País:</label>
@@ -13,6 +17,15 @@
 </EditForm>
 
 @code {
+    private EditContext editContext = null!;
+
+    protected override void OnInitialized()
+    {
+        editContext = new(Country);
+    }
+
+    public bool FormPostedSuccessfully { get; set; } = false;
+
     [EditorRequired]
     [Parameter]
     public Country Country { get; set; } = null!;
@@ -24,4 +37,35 @@
     [EditorRequired]
     [Parameter]
     public EventCallback ReturnAction { get; set; }
+
+    private async Task OnBeforeInternalNavigation(LocationChangingContext context)
+    {
+        var formWasEdited = editContext.IsModified();
+
+        if (!formWasEdited)
+        {
+            return;
+        }
+
+        if (FormPostedSuccessfully)
+        {
+            return;
+        }
+
+        var result = await sweetAlertService.FireAsync(new SweetAlertOptions
+            {
+                Title = "Confirmación",
+                Text = "¿Deseas abandonar la página y perder los cambios?",
+                Icon = SweetAlertIcon.Warning,
+                ShowCancelButton = true
+            });
+
+        var confirm = !string.IsNullOrEmpty(result.Value);
+        if (confirm)
+        {
+            return;
+        }
+
+        context.PreventNavigation();
+    }
 }
