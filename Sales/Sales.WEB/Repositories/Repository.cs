@@ -50,13 +50,13 @@ namespace Sales.WEB.Repositories
             return new HttpResponseWrapper<TResponse>(default, !responseHttp.IsSuccessStatusCode, responseHttp);
         }
 
-        public async Task<HttpResponseWrapper<object>> Delete(string url)
+        public async Task<HttpResponseWrapper<object>> DeleteAsync(string url)
         {
             var responseHTTP = await _httpClient.DeleteAsync(url);
             return new HttpResponseWrapper<object>(null, !responseHTTP.IsSuccessStatusCode, responseHTTP);
         }
 
-        public async Task<HttpResponseWrapper<object>> Put<T>(string url, T model)
+        public async Task<HttpResponseWrapper<object>> PutAsync<T>(string url, T model)
         {
             var messageJSON = JsonSerializer.Serialize(model);
             var messageContent = new StringContent(messageJSON, Encoding.UTF8, "application/json");
@@ -64,7 +64,7 @@ namespace Sales.WEB.Repositories
             return new HttpResponseWrapper<object>(null, !responseHttp.IsSuccessStatusCode, responseHttp);
         }
 
-        public async Task<HttpResponseWrapper<TResponse>> Put<T, TResponse>(string url, T model)
+        public async Task<HttpResponseWrapper<TResponse>> PutAsync<T, TResponse>(string url, T model)
         {
             var messageJSON = JsonSerializer.Serialize(model);
             var messageContent = new StringContent(messageJSON, Encoding.UTF8, "application/json");
