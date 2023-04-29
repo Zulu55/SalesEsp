@@ -24,8 +24,8 @@ namespace Sales.API.Data
 
         private async Task CheckCountriesAsync()
         {
-            //if (!_context.Countries.Any())
-            //{
+            if (!_context.Countries.Any())
+            {
                 var responseCountries = await _apiService.GetListAsync<CountryResponse>("/v1", "/countries");
                 if (responseCountries.IsSuccess)
                 {
@@ -78,7 +78,7 @@ namespace Sales.API.Data
                         }
                     }
                 }
-            //}
+            }
         }
     }
 }
