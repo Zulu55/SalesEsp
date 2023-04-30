@@ -1,0 +1,68 @@
+﻿@page "/categories/edit/{Id:int}"
+@inject NavigationManager navigationManager
+@inject IRepository repository
+@inject SweetAlertService sweetAlertService
+
+<h3>Editar Categoría</h3>
+
+@if (category is null)
+{
+    <p>Cargando...</p>
+}
+else
+{
+    <CategoryForm @ref="categoryForm" Category="category" OnValidSubmit="EditAsync" ReturnAction="Return" />
+}
+
+@code {
+    private Category? category;
+    private CategoryForm? categoryForm;
+
+    [Parameter]
+    public int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var responseHTTP = await repository.GetAsync<Category>($"api/categories/{Id}");
+
+        if (responseHTTP.Error)
+        {
+            if (responseHTTP.HttpResponseMessage.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                navigationManager.NavigateTo("categories");
+                return;
+            }
+            var messageError = await responseHTTP.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", messageError, SweetAlertIcon.Error);
+            return;
+        }
+        category = responseHTTP.Response;
+    }
+
+    private async Task EditAsync()
+    {
+        var responseHTTP = await repository.PutAsync("api/categories", category);
+
+        if (responseHTTP.Error)
+        {
+            var mensajeError = await responseHTTP.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", mensajeError, SweetAlertIcon.Error);
+            return;
+        }
+        categoryForm!.FormPostedSuccessfully = true;
+        Return();
+        var toast = sweetAlertService.Mixin(new SweetAlertOptions
+            {
+                Toast = true,
+                Position = SweetAlertPosition.TopEnd,
+                ShowConfirmButton = false,
+                Timer = 5000
+            });
+        await toast.FireAsync(icon: SweetAlertIcon.Success, message: "Categoría modificado con éxito.");
+    }
+
+    private void Return()
+    {
+        navigationManager.NavigateTo("categories");
+    }
+}
