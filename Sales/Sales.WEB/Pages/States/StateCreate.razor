@@ -1,0 +1,44 @@
+﻿@page "/states/create/{CountryId:int}"
+@inject IRepository repository
+@inject NavigationManager navigationManager
+@inject SweetAlertService sweetAlertService
+
+<h3>Crear Estado/Departamento</h3>
+
+<StateForm @ref="stateForm" State="state" OnValidSubmit="CreateAsync" ReturnAction="Return" />
+
+@code {
+    private State state = new();
+    private StateForm? stateForm;
+
+    [Parameter]
+    public int CountryId { get; set; }
+
+    private async Task CreateAsync()
+    {
+        state.CountryId = CountryId;
+        var responseHttp = await repository.PostAsync("/api/states", state);
+        if (responseHttp.Error)
+        {
+            var message = await responseHttp.GetErrorMessageAsync();
+            await sweetAlertService.FireAsync("Error", message, SweetAlertIcon.Error);
+            return;
+        }
+
+        stateForm!.FormPostedSuccessfully = true;
+        Return();
+        var toast = sweetAlertService.Mixin(new SweetAlertOptions
+            {
+                Toast = true,
+                Position = SweetAlertPosition.TopEnd,
+                ShowConfirmButton = false,
+                Timer = 5000
+            });
+        await toast.FireAsync(icon: SweetAlertIcon.Success, message: "Estado/Departamento creado con éxito.");
+    }
+
+    private void Return()
+    {
+        navigationManager.NavigateTo($"/countries/details/{CountryId}");
+    }
+}

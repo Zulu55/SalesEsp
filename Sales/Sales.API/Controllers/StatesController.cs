@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sales.API.Data;
+using Sales.API.Helpers;
+using Sales.Shared.DTOs;
 using Sales.Shared.Entities;
 
 namespace Sales.API.Controllers
@@ -17,11 +19,39 @@ namespace Sales.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAsync()
+        public async Task<IActionResult> GetAsync([FromQuery] PaginationDTO pagination)
         {
-            return Ok(await _context.States
+            var querable = _context.States
                 .Include(s => s.Cities)
+                .Where(s => s.CountryId == pagination.Id)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(pagination.Filter))
+            {
+                querable = querable.Where(c => c.Name.ToLower().Contains(pagination.Filter.ToLower()));
+            }
+
+            return Ok(await querable
+                .OrderBy(c => c.Name)
+                .Paginate(pagination)
                 .ToListAsync());
+        }
+
+        [HttpGet("[action]")]
+        public async Task<ActionResult> GetPages([FromQuery] PaginationDTO pagination)
+        {
+            var querable = _context.States
+                .Where(s => s.CountryId == pagination.Id)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(pagination.Filter))
+            {
+                querable = querable.Where(c => c.Name.ToLower().Contains(pagination.Filter.ToLower()));
+            }
+
+            double count = await querable.CountAsync();
+            double totalPages = Math.Ceiling(count / pagination.RecordsNumber);
+            return Ok(totalPages);
         }
 
         [HttpGet("{id}")]

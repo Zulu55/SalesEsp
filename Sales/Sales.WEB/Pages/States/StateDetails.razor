@@ -1,22 +1,22 @@
-﻿@page "/countries/details/{CountryId:int}"
+﻿@page "/states/details/{StateId:int}"
 @inject IRepository repository
 @inject NavigationManager navigationManager
 @inject SweetAlertService sweetAlertService
 
-@if (country is null)
+@if (state is null)
 {
     <p>Cargando...</p>
 }
 else
 {
-    <h3>@country.Name</h3>
+    <h3>@state.Name</h3>
     <div class="mb-2" style="display: flex; flex-wrap:wrap; align-items: center;">
         <div>
-            <a class="btn btn-primary" href="/states/create/@country.Id">Nuevo Estado/Departamento</a>
-            <a class="btn btn-success" href="/countries">Regresar</a>
+            <a class="btn btn-primary" href="/cities/create/@StateId">Nueva Ciudad</a>
+            <a class="btn btn-success" href="/countries/details/@state.CountryId">Regresar</a>
         </div>
         <div class="mx-2">
-            <input style="width: 400px;" type="text" class="form-control" id="titulo" placeholder="Buscar estado/departamento..." @bind-value="Filter" />
+            <input style="width: 400px;" type="text" class="form-control" id="titulo" placeholder="Buscar ciudad..." @bind-value="Filter" />
         </div>
         <div>
             <button type="button" class="btn btn-outline-primary" @onclick="ApplyFilterAsync">Filtrar</button>
@@ -29,30 +29,25 @@ else
             TotalPages="totalPages"
             SelectedPage="SelectedPage" />
 
-    <GenericList MyList="states!">
+    <GenericList MyList="cities!">
         <Body>
             <table class="table table-striped">
                 <thead>
                     <tr>
-                        <th>Estado / Departamento</th>
-                        <th>Ciudades</th>
-                        <th></th>
+                        <th>Ciudad</th>
+                        <th style="width:160px"></th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var state in states!)
+                    @foreach (var city in cities!)
                     {
                         <tr>
                             <td>
-                                @state.Name
+                                @city.Name
                             </td>
                             <td>
-                                @state.CitiesNumber
-                            </td>
-                            <td>
-                                <a class="btn btn-info" href="/states/details/@state.Id">Detalles</a>
-                                <a class="btn btn-warning" href="/states/edit/@state.Id">Editar</a>
-                                <button class="btn btn-danger" @onclick=@(() => DeleteAsync(state.Id))>Borrar</button>
+                                <a class="btn btn-warning" href="/cities/edit/@city.Id">Editar</a>
+                                <button class="btn btn-danger" @onclick=@(() => DeleteAsync(city.Id))>Borrar</button>
                             </td>
                         </tr>
                     }
@@ -64,13 +59,13 @@ else
 
 
 @code {
-    private Country? country;
-    private List<State>? states;
+    private State? state;
+    private List<City>? cities;
     private int currentPage = 1;
     private int totalPages;
 
     [Parameter]
-    public int CountryId { get; set; }
+    public int StateId { get; set; }
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -82,15 +77,15 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadCountryAsync();
+        await LoadStateAsync();
         await LoadTotalPagesAsync();
-        await LoadStatesAsync();
+        await LoadCitiesAsync();
     }
 
     private async Task SelectedPage(int page)
     {
         currentPage = page;
-        await LoadStatesAsync(page);
+        await LoadCitiesAsync(page);
     }
 
     private async Task LoadTotalPagesAsync()
@@ -98,20 +93,20 @@ else
         var url = string.Empty;
         if (string.IsNullOrEmpty(Filter))
         {
-            url = $"api/states/GetPages?id={CountryId}";
+            url = $"api/cities/GetPages?id={StateId}";
         }
         else
         {
-            url = $"api/states/GetPages?id={CountryId}&filter={Filter}";
+            url = $"api/cities/GetPages?id={StateId}&filter={Filter}";
         }
 
         var responseHppt = await repository.GetAsync<int>(url);
         totalPages = responseHppt.Response!;
     }
 
-    private async Task LoadCountryAsync()
+    private async Task LoadStateAsync()
     {
-        var responseHttp = await repository.GetAsync<Country>($"/api/countries/{CountryId}");
+        var responseHttp = await repository.GetAsync<State>($"/api/states/{StateId}");
         if (responseHttp.Error)
         {
             if (responseHttp.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
@@ -125,10 +120,10 @@ else
             return;
         }
 
-        country = responseHttp.Response;
+        state = responseHttp.Response;
     }
 
-    private async Task LoadStatesAsync(int page = 1)
+    private async Task LoadCitiesAsync(int page = 1)
     {
         if (!string.IsNullOrWhiteSpace(Page))
         {
@@ -138,14 +133,14 @@ else
         var url = string.Empty;
         if (string.IsNullOrEmpty(Filter))
         {
-            url = $"api/states?id={CountryId}&page={page}";
+            url = $"api/cities?id={StateId}&page={page}";
         }
         else
         {
-            url = $"api/states?id={CountryId}&page={page}&filter={Filter}";
+            url = $"api/cities?id={StateId}&page={page}&filter={Filter}";
         }
 
-        var responseHttp = await repository.GetAsync<List<State>>(url);
+        var responseHttp = await repository.GetAsync<List<City>>(url);
         if (responseHttp.Error)
         {
             if (responseHttp.HttpResponseMessage.StatusCode == HttpStatusCode.NotFound)
@@ -159,7 +154,7 @@ else
             return;
         }
 
-        states = responseHttp.Response;
+        cities = responseHttp.Response;
     }
 
     private async Task DeleteAsync(int id)
@@ -180,7 +175,7 @@ else
             return;
         }
 
-        var responseHttp = await repository.DeleteAsync($"/api/states/{id}");
+        var responseHttp = await repository.DeleteAsync($"/api/cities/{id}");
         if (responseHttp.Error)
         {
             if (responseHttp.HttpResponseMessage.StatusCode != HttpStatusCode.NotFound)
@@ -192,7 +187,7 @@ else
         }
 
         await LoadTotalPagesAsync();
-        await LoadStatesAsync();
+        await LoadCitiesAsync();
     }
 
 
@@ -206,7 +201,7 @@ else
     {
         int page = 1;
         await LoadTotalPagesAsync();
-        await LoadStatesAsync(page);
+        await LoadCitiesAsync(page);
         await SelectedPage(page);
     }
 }
