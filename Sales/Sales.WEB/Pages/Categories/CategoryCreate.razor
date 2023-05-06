@@ -1,4 +1,5 @@
 ﻿@page "/categories/create"
+@attribute [Authorize(Roles = "Admin")]
 @inject IRepository repository
 @inject NavigationManager navigationManager
 @inject SweetAlertService sweetAlertService
