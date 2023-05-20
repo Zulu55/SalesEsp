@@ -89,14 +89,17 @@ namespace Sales.API.Controllers
             }
             catch (DbUpdateException dbUpdateException)
             {
-                if (dbUpdateException.InnerException!.Message.Contains("duplicate"))
+                if (dbUpdateException.InnerException is null)
+                {
+                    return BadRequest(dbUpdateException.Message);
+                }
+
+                if (dbUpdateException.InnerException!.Message!.Contains("duplicate"))
                 {
                     return BadRequest("Ya existe una categoría con el mismo nombre.");
                 }
-                else
-                {
-                    return BadRequest(dbUpdateException.InnerException.Message);
-                }
+
+                return BadRequest(dbUpdateException.InnerException.Message);
             }
             catch (Exception exception)
             {
@@ -115,14 +118,17 @@ namespace Sales.API.Controllers
             }
             catch (DbUpdateException dbUpdateException)
             {
-                if (dbUpdateException.InnerException!.Message.Contains("duplicate"))
+                if (dbUpdateException.InnerException is null)
+                {
+                    return BadRequest(dbUpdateException.Message);
+                }
+
+                if (dbUpdateException.InnerException!.Message!.Contains("duplicate"))
                 {
                     return BadRequest("Ya existe una categoría con el mismo nombre.");
                 }
-                else
-                {
-                    return BadRequest(dbUpdateException.InnerException.Message);
-                }
+
+                return BadRequest(dbUpdateException.InnerException.Message);
             }
             catch (Exception exception)
             {
